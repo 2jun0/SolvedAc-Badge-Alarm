@@ -1,0 +1,30 @@
+name: workflow
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+
+jobs:
+  job:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - run: npm init
+      - name: download storage
+        uses: actions/download-artifact@v1
+        with:
+          name: storage
+      - name: 새로운 뱃지 확인
+        run: |
+          value = `cat storage/badgeId.txt`
+          node index.js $value
+      - run: |
+          node lastestBadgeId.js > storage/badgeId.txt
+      - name: Upload storage
+        uses: actions/upload-artifact@v1
+        with:
+          name: storage
+          path: storage/badgeId.txt
