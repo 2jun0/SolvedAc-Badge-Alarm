@@ -3,28 +3,38 @@ name: workflow
 on:
   schedule:
     - cron: '0 * * * *'
+  push:
 
 jobs:
   job:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: dawidd6/action-download-artifact@v2
+        with:
+          name: storage
+      - run: ls -a
       - uses: actions/setup-node@v3
         with:
           node-version: 16
-      - run: npm init
-      - name: download storage
-        uses: actions/download-artifact@v1
-        with:
-          name: storage
+      - run: npm i
+
+      - name: create .env
+        run: |
+            touch .env
+            echo SEND_ID=${{ secrets.SEND_ID }} >> .env
+            echo SEND_PW=${{ secrets.SEND_PW }} >> .env
+            echo TO_ID=${{ secrets.TO_ID }} >> .env
+            cat .env
+      
       - name: 새로운 뱃지 확인
         run: |
-          value = `cat storage/badgeId.txt`
-          node index.js $value
+            node index.js $(cat LASTEST_BADGE_ID.txt)
       - run: |
-          node lastestBadgeId.js > storage/badgeId.txt
-      - name: Upload storage
-        uses: actions/upload-artifact@v1
+            node lastestBadgeId.js > LASTEST_BADGE_ID.txt
+            cat LASTEST_BADGE_ID.txt
+
+      - uses: actions/upload-artifact@v3
         with:
           name: storage
-          path: storage/badgeId.txt
+          path: LASTEST_BADGE_ID.txt
